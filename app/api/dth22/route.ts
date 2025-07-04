@@ -1,16 +1,32 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+
+// Function untuk menambahkan CORS headers ke response
+const addCorsHeaders = (response: NextResponse) => {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  return response;
+};
 
 export async function GET() {
   try {
     const data = await prisma.dth22.findMany({
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: "desc" },
     });
-    return NextResponse.json(data);
+    return addCorsHeaders(NextResponse.json(data));
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Gagal mengambil data DTH22' },
-      { status: 500 }
+    return addCorsHeaders(
+      NextResponse.json(
+        { error: "Gagal mengambil data DTH22" },
+        { status: 500 }
+      )
     );
   }
 }
@@ -21,9 +37,8 @@ export async function POST(request: Request) {
 
     // Validasi input
     if (!unit_name || suhu === undefined || kelembapan === undefined) {
-      return NextResponse.json(
-        { error: 'Semua field harus diisi' },
-        { status: 400 }
+      return addCorsHeaders(
+        NextResponse.json({ error: "Semua field harus diisi" }, { status: 400 })
       );
     }
 
@@ -35,12 +50,14 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(newRecord, { status: 201 });
+    return addCorsHeaders(NextResponse.json(newRecord, { status: 201 }));
   } catch (error) {
-    console.error('Error creating DTH22 record:', error);
-    return NextResponse.json(
-      { error: 'Gagal menambahkan data DTH22' },
-      { status: 500 }
+    console.error("Error creating DTH22 record:", error);
+    return addCorsHeaders(
+      NextResponse.json(
+        { error: "Gagal menambahkan data DTH22" },
+        { status: 500 }
+      )
     );
   }
 }
@@ -50,9 +67,8 @@ export async function PUT(request: Request) {
     const { id, ...updateData } = await request.json();
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'ID harus disertakan' },
-        { status: 400 }
+      return addCorsHeaders(
+        NextResponse.json({ error: "ID harus disertakan" }, { status: 400 })
       );
     }
 
@@ -69,12 +85,20 @@ export async function PUT(request: Request) {
       data: updateData,
     });
 
-    return NextResponse.json(updatedRecord);
+    return addCorsHeaders(NextResponse.json(updatedRecord));
   } catch (error) {
-    console.error('Error updating DTH22 record:', error);
-    return NextResponse.json(
-      { error: 'Gagal memperbarui data DTH22' },
-      { status: 500 }
+    console.error("Error updating DTH22 record:", error);
+    return addCorsHeaders(
+      NextResponse.json(
+        { error: "Gagal memperbarui data DTH22" },
+        { status: 500 }
+      )
     );
   }
+}
+
+// Handler untuk OPTIONS request (preflight)
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 204 });
+  return addCorsHeaders(response);
 }
